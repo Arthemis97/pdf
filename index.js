@@ -13,6 +13,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const port = 4000;
 app.use(bodyParser.json({ limit: "100mb" }));
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 async function exportWebsiteAsPdf(html, outputPath) {
@@ -26,7 +27,6 @@ async function exportWebsiteAsPdf(html, outputPath) {
     margin: { top: "10mm", right: "15mm", bottom: "10mm", left: "15mm" },
     printBackground: true,
     format: "A4",
-    printBackground: true,
   });
   await browser.close();
   return PDF;
@@ -123,7 +123,9 @@ app.post("/generate", upload.array("files"), async (req, res) => {
     .then(async (buffer) => {
       const pdfDoc = await PDFDocument.create();
       let buffers = [buffer];
-      buffers = [...buffers, ...req.files.map((i) => i.buffer)];
+      if (req.files && req.files.length > 0) {
+        buffers = [...buffers, ...req.files.map((i) => i.buffer)];
+      }
       for (const bf of buffers) {
         const existingPdf = await PDFDocument.load(bf);
         const pages = await pdfDoc.copyPages(
