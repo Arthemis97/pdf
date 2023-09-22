@@ -86,45 +86,46 @@ app.post("/generate", upload.array("files"), async (req, res) => {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 	<body>`;
-
-  req.body.html.map((i) => {
-    html += i + '<div class="pageBreak"></div>';
-  });
-  html += `
-  <style>
-			body {
-				font-family: Arial, Helvetica, sans-serif;
-				box-sizing: border-box; 
-				page-break-inside: avoid;
-			}
-			figure {
-				margin: 0 !important;
-			}
-			table, .table {
-				border-collapse: collapse;
-				width: 100% !important;
-			}
-			* {
-				line-height: 5mm !important;
-			}
-			.pageBreak {
-				page-break-after: always !important;
-				clear: both !important;
-			}
-			tr {
-				page-break-inside: avoid;
-			}
-		</style>
- 	</body>
-	</html> 
-  `;
+  if (req.body.html) {
+    req.body.html.map((i) => {
+      html += i + '<div class="pageBreak"></div>';
+    });
+    html += `
+    <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          box-sizing: border-box; 
+          page-break-inside: avoid;
+        }
+        figure {
+          margin: 0 !important;
+        }
+        table, .table {
+          border-collapse: collapse;
+          width: 100% !important;
+        }
+        * {
+          line-height: 5mm !important;
+        }
+        .pageBreak {
+          page-break-after: always !important;
+          clear: both !important;
+        }
+        tr {
+          page-break-inside: avoid;
+        }
+      </style>
+     </body>
+    </html> 
+    `;
+  }
 
   exportWebsiteAsPdf(html, "result.PDF")
     .then(async (buffer) => {
       const pdfDoc = await PDFDocument.create();
       let buffers = [buffer];
       if (req.files && req.files.length > 0) {
-        buffers = [...buffers, ...req.files.map((i) => i.buffer)];
+        buffers = [...req.files.map((i) => i.buffer), ...buffers];
       }
       for (const bf of buffers) {
         const existingPdf = await PDFDocument.load(bf);
